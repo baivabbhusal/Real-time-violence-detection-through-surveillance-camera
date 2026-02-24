@@ -10,7 +10,7 @@ def split_and_save():
     METADATA_PATH = os.path.join(DATASET_DIR, "metadata.csv")
     
     if not os.path.exists(METADATA_PATH):
-        print(f"❌ Error: Could not find {METADATA_PATH}")
+        print(f"Error: Could not find {METADATA_PATH}")
         return
 
     # 2. Load data
@@ -32,7 +32,7 @@ def split_and_save():
     val_df.to_csv(os.path.join(DATASET_DIR, "val.csv"), index=False)
     test_df.to_csv(os.path.join(DATASET_DIR, "test.csv"), index=False)
 
-    print("✅ Data successfully split!")
+    print("Data successfully split!")
     print(f"Total: {len(df)} | Train: {len(train_df)} | Val: {len(val_df)} | Test: {len(test_df)}")
 
 if __name__ == "__main__":

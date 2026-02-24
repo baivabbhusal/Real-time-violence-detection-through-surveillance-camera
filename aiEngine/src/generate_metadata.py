@@ -10,7 +10,7 @@ def generate_metadata(data_root, output_csv):
 
     data = []
     if not os.path.exists(data_root):
-        print(f"❌ Error: {data_root} not found!")
+        print(f"Error: {data_root} not found!")
         return
 
     # --- STEP 2: SCAN FOLDERS ---
@@ -37,7 +37,7 @@ def generate_metadata(data_root, output_csv):
     # --- STEP 3: SAVE ---
     df = pd.DataFrame(data)
     df.to_csv(output_csv, index=False)
-    print(f"\n✅ SUCCESS: Master metadata saved to: {output_csv}")
+    print(f"\n SUCCESS: Master metadata saved to: {output_csv}")
     print(df['label'].value_counts())
 
 if __name__ == "__main__":
