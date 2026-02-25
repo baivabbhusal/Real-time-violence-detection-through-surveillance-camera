@@ -13,7 +13,7 @@ os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 # --- UPDATE PATHS ---
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # Make sure your video is in the visionGuard folder
-VIDEO_PATH = os.path.join(BASE_DIR, "test_video.mp4") 
+VIDEO_PATH = os.path.join(BASE_DIR, "aa.mp4") 
 MODEL_PATH = os.path.join(BASE_DIR, "artifacts", "best_model.keras")
 
 def build_skeleton():
