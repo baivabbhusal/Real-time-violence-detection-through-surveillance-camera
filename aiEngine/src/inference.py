@@ -13,7 +13,7 @@ os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 # --- UPDATE PATHS ---
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # Make sure your video is in the visionGuard folder
-VIDEO_PATH = os.path.join(BASE_DIR, "aa.mp4") 
+VIDEO_PATH = os.path.join(BASE_DIR, "NV_3.mp4") 
 MODEL_PATH = os.path.join(BASE_DIR, "artifacts", "best_model.keras")
 
 def build_skeleton():
@@ -55,24 +55,31 @@ def start_video_test():
         if len(frame_buffer) > 16:
             frame_buffer.pop(0)
 
-        # Run AI Prediction
-        if len(frame_buffer) == 16:
-            input_tensor = np.expand_dims(np.array(frame_buffer), axis=0)
-            prediction = model.predict(input_tensor, verbose=0)[0][0]
-            
-            label = "VIOLENCE" if prediction > 0.5 else "NORMAL"
-            color = (0, 0, 255) if label == "VIOLENCE" else (0, 255, 0)
-            
-            # UI Overlay
-            cv2.rectangle(frame, (10, 10), (400, 70), (0, 0, 0), -1)
-            cv2.putText(frame, f"{label} ({prediction:.2f})", (20, 50), 
-                        cv2.FONT_HERSHEY_SIMPLEX, 1, color, 3)
+        # Run AI Prediction 
+if len(frame_buffer) == 16:
+    input_tensor = np.expand_dims(np.array(frame_buffer), axis=0)
+    prediction = model.predict(input_tensor, verbose=0)[0][0]
+    
+    # Calculate confidence percentage
+    # If prediction is 0.98, it's 98% sure it's violence
+    # If prediction is 0.02, it's 98% sure it's normal (1 - 0.02)
+    confidence = prediction if prediction > 0.5 else (1 - prediction)
+    accuracy_pct = confidence * 100
 
-        cv2.imshow('VisionGuard - File Test', frame)
-        
-        # Press 'q' to exit
-        if cv2.waitKey(25) & 0xFF == ord('q'):
-            break
+    label = "VIOLENCE" if prediction > 0.5 else "NORMAL"
+    color = (0, 0, 255) if label == "VIOLENCE" else (0, 255, 0)
+    
+    # --- UPDATED UI OVERLAY ---
+    # Background box for readability
+    cv2.rectangle(frame, (10, 10), (450, 100), (0, 0, 0), -1)
+    
+    # Status Label
+    cv2.putText(frame, f"STATUS: {label}", (20, 50), 
+                cv2.FONT_HERSHEY_SIMPLEX, 1, color, 3)
+    
+    # Prediction Confidence (Live Accuracy)
+    cv2.putText(frame, f"CONFIDENCE: {accuracy_pct:.2f}%", (20, 85), 
+                cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
 
     print(" Processing Finished.")
     cap.release()
