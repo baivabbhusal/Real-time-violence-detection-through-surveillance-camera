@@ -1,0 +1,61 @@
+<!-- templates/login.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login</title>
+    <link href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" rel="stylesheet">
+</head>
+<body class="bg-light">
+    <div class="container mt-5">
+        <h1 class="text-center mb-4">Login</h1>
+
+        <div aria-live="polite" aria-atomic="true" style="min-height: 200px;">
+            <div id="toastContainer" style="position: fixed; top: 20px; right: 20px; z-index: 2000;">
+                <!-- Toasts will be appended here -->
+            </div>
+        </div>
+
+        <div class="row justify-content-center">
+            <div class="col-md-4">
+                <div class="card">
+                    <div class="card-body">
+                        <form action="/login" method="post">
+                            <div class="form-group">
+                                <label for="username">Username:</label>
+                                <input type="text" id="username" name="username" class="form-control" required>
+                            </div>
+                            <div class="form-group">
+                                <label for="password">Password:</label>
+                                <input type="password" id="password" name="password" class="form-control" required>
+                            </div>
+                            <button type="submit" class="btn btn-primary btn-block">Login</button>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@popperjs/core@2.9.3/dist/umd/popper.min.js"></script>
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        {% with messages = get_flashed_messages(with_categories=false) %}
+          {% if messages %}
+            const toastContainer = document.getElementById('toastContainer');
+            {% for message in messages %}
+              const toastHTML = `
+                <div class="toast" role="alert" aria-live="assertive" aria-atomic="true" data-delay="5000">
+                  <div class="toast-body">{{ message }}</div>
+                </div>`;
+              toastContainer.innerHTML += toastHTML;
+            {% endfor %}
+            const toasts = document.querySelectorAll('.toast');
+            toasts.forEach(toast => $(toast).toast('show'));
+          {% endif %}
+        {% endwith %}
+    </script>
+</body>
+</html>
