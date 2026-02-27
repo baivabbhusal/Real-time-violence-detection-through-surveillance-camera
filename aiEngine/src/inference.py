@@ -12,8 +12,7 @@ os.environ['TF_ENABLE_ONEDNN_OPTS'] = '0'
 
 # --- UPDATE PATHS ---
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
-# Make sure your video is in the visionGuard folder
-VIDEO_PATH = os.path.join(BASE_DIR, "NV_3.mp4") 
+VIDEO_PATH = os.path.join(BASE_DIR, "abcd.mp4") 
 MODEL_PATH = os.path.join(BASE_DIR, "artifacts", "best_model.keras")
 
 def build_skeleton():
@@ -29,59 +28,63 @@ def build_skeleton():
 
 print(" Initializing VisionGuard AI...")
 model = build_skeleton()
-model.load_weights(MODEL_PATH)
-print(" Weights Loaded Successfully!")
+try:
+    model.load_weights(MODEL_PATH)
+    print(" Weights Loaded Successfully!")
+except Exception as e:
+    print(f" ERROR: Could not load weights: {MODEL_PATH}")
 
 def start_video_test():
     if not os.path.exists(VIDEO_PATH):
-        print(f" ERROR: Video file not found at {VIDEO_PATH}")
+        print(f" ERROR: Video file not found")
         return
 
     cap = cv2.VideoCapture(VIDEO_PATH)
     frame_buffer = []
     
-    print(f"🎬 Processing: {os.path.basename(VIDEO_PATH)}")
+    # Defaults
+    display_text = "ANALYZING..."
+    color = (255, 255, 255)
 
     while cap.isOpened():
         ret, frame = cap.read()
-        if not ret:
-            break
+        if not ret: break
+
+        # Use a separate frame for display to keep it full size
+        display_frame = frame.copy()
 
         # Pre-process for AI
-        img = cv2.resize(frame, (224, 224))
-        img_pre = preprocess_input(img)
+        img_ai = cv2.resize(frame, (224, 224))
+        img_pre = preprocess_input(img_ai)
         frame_buffer.append(img_pre)
         
         if len(frame_buffer) > 16:
             frame_buffer.pop(0)
 
-        # Run AI Prediction 
-if len(frame_buffer) == 16:
-    input_tensor = np.expand_dims(np.array(frame_buffer), axis=0)
-    prediction = model.predict(input_tensor, verbose=0)[0][0]
-    
-    # Calculate confidence percentage
-    # If prediction is 0.98, it's 98% sure it's violence
-    # If prediction is 0.02, it's 98% sure it's normal (1 - 0.02)
-    confidence = prediction if prediction > 0.5 else (1 - prediction)
-    accuracy_pct = confidence * 100
+        if len(frame_buffer) == 16:
+            input_tensor = np.expand_dims(np.array(frame_buffer), axis=0)
+            prediction = model.predict(input_tensor, verbose=0)[0][0]
+            
+            if prediction > 0.5:
+                # Show VIOLENCE and its percentage
+                display_text = f"VIOLENCE {prediction * 100:.1f}%"
+                color = (0, 0, 255) # Red
+            else:
+                # Show NORMAL and its percentage
+                display_text = f"NORMAL {(1 - prediction) * 100:.1f}%"
+                color = (0, 255, 0) 
 
-    label = "VIOLENCE" if prediction > 0.5 else "NORMAL"
-    color = (0, 0, 255) if label == "VIOLENCE" else (0, 255, 0)
-    
-    # --- UPDATED UI OVERLAY ---
-    # Background box for readability
-    cv2.rectangle(frame, (10, 10), (450, 100), (0, 0, 0), -1)
-    
-    # Status Label
-    cv2.putText(frame, f"STATUS: {label}", (20, 50), 
-                cv2.FONT_HERSHEY_SIMPLEX, 1, color, 3)
-    
-    # Prediction Confidence (Live Accuracy)
-    cv2.putText(frame, f"CONFIDENCE: {accuracy_pct:.2f}%", (20, 85), 
-                cv2.FONT_HERSHEY_SIMPLEX, 0.7, (255, 255, 255), 2)
+     
+        cv2.rectangle(display_frame, (10, 10), (420, 70), (0, 0, 0), -1)
+        
+        cv2.putText(display_frame, display_text, (20, 50), 
+                    cv2.FONT_HERSHEY_SIMPLEX, 1.2, color, 3)
 
-    print(" Processing Finished.")
+        cv2.imshow('VisionGuard - AI Test', display_frame)
+        
+        if cv2.waitKey(25) & 0xFF == ord('q'):
+            break
+
     cap.release()
     cv2.destroyAllWindows()
 
