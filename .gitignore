@@ -1,3 +1,5 @@
 .venv/
 aiEngine/dataset/raw/
 aiEngine/dataset/processed/
+aiEngine/dataset/raw.zip
+aiEngine/artifacts/bestModel.keras
