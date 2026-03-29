@@ -1,3 +1,5 @@
 .venv/
 aiEngine/dataset/raw/
 aiEngine/dataset/processed/
+backend/.venv/
+backendApi/.env/
