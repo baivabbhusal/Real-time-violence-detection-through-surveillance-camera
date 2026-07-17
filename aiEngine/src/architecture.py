@@ -1,38 +1,80 @@
 import tensorflow as tf
-from tensorflow.keras import layers, models
+from tensorflow.keras import layers
+from tensorflow.keras import models
 
-def build_violence_model(input_shape=(16, 224, 224, 3)):
-    """
-    input_shape: (Frames, Height, Width, Channels)
-    Standard is 16 frames of 224x224 RGB images.
-    """
-    
-    # 1. THE EYES: MobileNetV2 (Pre-trained on ImageNet)
-    # We freeze it so we don't ruin the pre-trained weights
+
+def build_violence_model(
+    sequence_length=8,
+    image_size=160
+):
+
+    # MobileNetV2 Backbone
+
+
     base_model = tf.keras.applications.MobileNetV2(
-        input_shape=(224, 224, 3), 
-        include_top=False, 
-        weights='imagenet'
+        input_shape=(image_size, image_size, 3),
+        include_top=False,
+        weights="imagenet"
     )
-    base_model.trainable = False 
+
+    # Freeze backbone initially
+    base_model.trainable = False
+
+
+    # Model Architecture
+
 
     model = models.Sequential()
 
-    # 2. THE WRAPPER: Apply MobileNetV2 to every one of the 16 frames
-    model.add(layers.TimeDistributed(base_model, input_shape=input_shape))
-    model.add(layers.TimeDistributed(layers.GlobalAveragePooling2D()))
+    # Process each frame independently
+    model.add(
+        layers.TimeDistributed(
+            base_model,
+            input_shape=(
+                sequence_length,
+                image_size,
+                image_size,
+                3
+            )
+        )
+    )
 
-    # 3. THE MEMORY: LSTM (This detects the "movement" of violence)
-    model.add(layers.LSTM(64, return_sequences=False))
-    
-    # 4. THE DECISION: Dense Layers
-    model.add(layers.Dense(64, activation='relu'))
-    model.add(layers.Dropout(0.3)) # Prevents cheating/overfitting
-    model.add(layers.Dense(1, activation='sigmoid')) # Output: 0 (Normal) or 1 (Violence)
+    # Convert feature maps into vectors
+    model.add(
+        layers.TimeDistributed(
+            layers.GlobalAveragePooling2D()
+        )
+    )
+
+    # Temporal sequence learning
+    model.add(
+        layers.Bidirectional(
+            layers.LSTM(
+                64,
+                return_sequences=False
+            )
+        )
+    )
+
+    # Regularization
+    model.add(layers.Dropout(0.5))
+
+    # Dense feature learning
+    model.add(
+        layers.Dense(
+            64,
+            activation="relu"
+        )
+    )
+
+    model.add(layers.Dropout(0.3))
+
+    # Binary classification
+    model.add(
+        layers.Dense(
+            1,
+            activation="sigmoid"
+        )
+    )
 
     return model
-
-if __name__ == "__main__":
-    # Test if the model builds correctly
-    my_model = build_violence_model()
-    my_model.summary()

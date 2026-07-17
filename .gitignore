@@ -2,4 +2,5 @@
 aiEngine/dataset/raw/
 aiEngine/dataset/processed/
 backend/.venv/
-backendApi/.env/
+backend/.env/
+aiEngine.zip
